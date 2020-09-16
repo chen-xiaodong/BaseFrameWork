@@ -11,7 +11,7 @@ import yaml
 
 
 class yaml_tools:
-    def __init__(self, file_path: None) -> None:
+    def __init__(self, path="") -> None:
         """
         you should provide the file_path to use this tool.
         if file_path not found, will raise FileNotFoundError
@@ -22,9 +22,9 @@ class yaml_tools:
         :param: file_path
 
         """
-        if self.path is None:
+        if path is None:
             raise FileNotFoundError(" The file is not exist!")
-        self.path = file_path
+        self.path = path
 
     def yaml_to_dict(self) -> dict:
         """
@@ -35,7 +35,7 @@ class yaml_tools:
             yaml_file = yaml.safe_load(f)
         return yaml_file
 
-    def get_config_by_name(self, config_name: None) -> str:
+    def get_config_by_name(self, config_name="") -> str:
         """
         use get method to get the string words
 
@@ -43,3 +43,5 @@ class yaml_tools:
         :return:String
         """
         return self.yaml_to_dict().get(config_name)
+
+    # TODO 添加文件内容的异常处理

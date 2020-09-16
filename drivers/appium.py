@@ -6,3 +6,8 @@
 @Descriptions: 
 
 """
+
+
+class appium_driver:
+    def __init__(self, version):
+        self._version = version

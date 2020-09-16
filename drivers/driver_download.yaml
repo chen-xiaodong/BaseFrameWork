@@ -1,0 +1,7 @@
+download_url:
+  base_url: https://chromedriver.storage.googleapis.com/
+  platforms:
+    linux: /chromedriver_linux64.zip
+    macos: /chromedriver_mac64.zip
+    windows: /chromedriver_win32.zip
+selenium_url: http://www.baidu.com

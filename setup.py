@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="wasu_test",
-    version="1.3",
+    version="1.4",
     author="XiaoDong Chen",
     author_email="chenxiaodong@wasu.com",
     description="The Wasu Auto TestFrameWork",
@@ -13,7 +13,8 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="",
     packages=setuptools.find_packages(),
-    install_requires=['PyYAML>=5.3'],
+    install_requires=['PyYAML>=5.3', 'PyMySql>=0.10.1',
+                      'xlrd>=1.2.0', 'requests>=2.24.0'],
     entry_points={
 
     },

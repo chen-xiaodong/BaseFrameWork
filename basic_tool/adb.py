@@ -6,9 +6,10 @@
 @Descriptions: 
 
 """
+import subprocess
 
 
-class adb_tools:
+class adb:
     def __init__(self):
         """
         :param:
@@ -23,7 +24,7 @@ class adb_tools:
         :return:
 
         """
-        pass
+        self.run("adb kill-server")
 
     def adb_start_server(self):
         """
@@ -31,15 +32,15 @@ class adb_tools:
         :return:
 
         """
-        pass
+        self.run("adb start-server")
 
-    def adb_shell(self):
+    def adb_shell(self, args):
         """
         :param:
         :return:
 
         """
-        pass
+        self.run("adb shell " + args)
 
     def adb_connect(self, device: str):
         """
@@ -47,7 +48,7 @@ class adb_tools:
         :return:
 
         """
-        pass
+        self.run("adb connect " + device)
 
     def adb_devices(self):
         """
@@ -57,18 +58,23 @@ class adb_tools:
         """
         pass
 
-    def adb_install(self):
+    def adb_install(self, args="-a", package=None):
         """
         :param: 
         :return: 
         
         """
-        pass
+        self.run("adb install " + args + package)
 
-    def adb_uninstall(self):
+    def adb_uninstall(self, args="-a", package=None):
         """
         :param:
         :return:
 
         """
-        pass
+        self.run("adb uninstall " + args + package)
+
+    @staticmethod
+    def run(args):
+        p = subprocess.run(args=args, shell=True, stdout=subprocess.PIPE)
+        return p
