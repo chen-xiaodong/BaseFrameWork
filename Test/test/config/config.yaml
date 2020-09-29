@@ -1,0 +1,222 @@
+
+# 注释说明
+download_config:
+  base_url: https://chromedriver.storage.googleapis.com/
+  platforms:
+    linux: /chromedriver_linux64.zip
+    macos: /chromedriver_mac64.zip
+    windows: /chromedriver_win32.zip
+# selenium打开的页面
+selenium_url: http://www.baidu.com
+# chrome的版本号
+chrome_version: 85.0.4183.83
+# 配置文件夹路径
+config_dir: ../Test/test/config
+# chrome下载链接
+chrome_download_url: www.baidu.com
+# appium配置
+appium:
+  platformName: 'Android'
+  platformVersion: '5.1.1'
+  deviceName: '127.0.0.1:62001'
+  appPackage: 'com.netease.cloudmusic'
+  appActivity: 'com.netease.cloudmusic.activity.LoadingActivity'
+#  noReset: True
+  autoGrantPermissions: True
+  dontStopAppOnReset: True
+device_ip: 127.0.0.1:62001
+appium_config:
+  platformName: 'Android'
+  platformVersion: '6.0.1'
+  deviceName: '127.0.0.1:6555'
+  appPackage: 'com.netease.cloudmusic'
+  appActivity: 'com.netease.cloudmusic.activity.LoadingActivity'
+#  noReset: True
+  autoGrantPermissions: True
+  dontStopAppOnReset: True
+  automationName: UiAutomator1
+device_ip2: 127.0.0.1:6555
+report: "report.html"
+before_case:
+  name: logout
+  actions:
+    action1:
+      locate_method: id
+      element_msg: username
+      operation: send_keys
+      value: chen
+    action2:
+      locate: id
+      element: username
+      operation: send_keys
+      value: chen
+case1:
+  name: login
+  actions:
+    action1:
+      locate: id
+      element: com.netease.cloudmusic:id/agre
+      operation: click
+      value:
+    action2:
+      locate: id
+      element: com.netease.cloudmusic:id/agreeCheckbox
+      operation: click
+      value: excel2
+    action3:
+      locate: id
+      element: com.netease.cloudmusic:id/login
+      operation: click
+
+
+
+case2:
+  name: palyMusic
+  refer: case1
+  actions:
+    action1:
+      locate: id
+      element: com.netease.cloudmusic:id/cellphone
+      operation: send_keys
+      value: 18758572113
+    action2:
+      locate: id
+      element: com.netease.cloudmusic:id/next
+      operation: click
+      value: 00000
+    action3:
+      locate: id
+      element: com.netease.cloudmusic:id/password
+      operation: send_keys
+      value: 123456789a
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
