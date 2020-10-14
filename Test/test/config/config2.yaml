@@ -1,0 +1,8 @@
+case1:
+  name: test_message
+  actions:
+    action1:
+      locate: id
+      operation: text
+      element: tv_message_detail
+      value:

@@ -50,12 +50,30 @@ before_case:
       element: username
       operation: send_keys
       value: chen
+before_case2:
+  name: collect
+  actions:
+    action1:
+      operations:
+        - up
+        - up
+        - down
+        - up
+        - ok
+        - up
+        - input 15222
+    action2:
+      operations:
+        - input 18580269254
+        - up
+
+
 case1:
   name: login
   actions:
     action1:
       locate: id
-      element: com.netease.cloudmusic:id/agre
+      element: com.netease.cloudmusic:id/agree
       operation: click
       value:
     action2:
@@ -67,9 +85,6 @@ case1:
       locate: id
       element: com.netease.cloudmusic:id/login
       operation: click
-
-
-
 case2:
   name: palyMusic
   refer: case1
@@ -89,6 +104,16 @@ case2:
       element: com.netease.cloudmusic:id/password
       operation: send_keys
       value: 123456789a
+  validate:
+    url:
+      except: http：www.baidu.com
+    activity:
+      except: com.android.MainActivity
+    text:
+      locate: id
+      element: com.netease.cloudmusic:id/cellphone
+      except: 18580269254
+
 
 
 

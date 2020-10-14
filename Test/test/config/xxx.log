@@ -1,0 +1,14 @@
+INFO 2020/10/13 02:15:00  load  参数: (<tools.tools.Yaml object at 0x7f829b221e50>,)
+INFO 2020/10/13 02:15:00  result:  None
+INFO 2020/10/13 02:15:00  get_config_by_path  参数: (<tools.tools.Yaml object at 0x7f829b221e50>, 'before_case2.actions.action1.operations')
+INFO 2020/10/13 02:15:00  result:  ['up', 'up', 'down', 'up', 'ok', 'up', 'input 15222']
+INFO 2020/10/13 02:15:00  wrapper  参数: (<tools.tools.Adb object at 0x7f829dc4e190>,)
+INFO 2020/10/13 02:15:00  result:  None
+INFO 2020/10/13 02:15:00  wrapper  参数: (<tools.tools.Adb object at 0x7f829dc4e190>,)
+INFO 2020/10/13 02:15:00  result:  None
+INFO 2020/10/13 02:15:00  wrapper  参数: (<tools.tools.Adb object at 0x7f829dc4e190>,)
+INFO 2020/10/13 02:15:00  result:  None
+INFO 2020/10/13 02:15:00  wrapper  参数: (<tools.tools.Adb object at 0x7f829dc4e190>,)
+INFO 2020/10/13 02:15:00  result:  None
+INFO 2020/10/13 02:15:06  wrapper  参数: (<tools.tools.Adb object at 0x7f829dc4e190>, '15222')
+INFO 2020/10/13 02:15:06  result:  None
