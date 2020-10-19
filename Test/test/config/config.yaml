@@ -1,30 +1,72 @@
-
-# 注释说明
-download_config:
-  base_url: https://chromedriver.storage.googleapis.com/
-  platforms:
-    linux: /chromedriver_linux64.zip
-    macos: /chromedriver_mac64.zip
-    windows: /chromedriver_win32.zip
-# selenium打开的页面
-selenium_url: http://www.baidu.com
-# chrome的版本号
-chrome_version: 85.0.4183.83
-# 配置文件夹路径
-config_dir: ../Test/test/config
-# chrome下载链接
-chrome_download_url: www.baidu.com
+#
+## 注释说明
+#download_config:
+#  base_url: https://chromedriver.storage.googleapis.com/
+#  platforms:
+#    linux: /chromedriver_linux64.zip
+#    macos: /chromedriver_mac64.zip
+#    windows: /chromedriver_win32.zip
+## selenium打开的页面
+#selenium_url: http://www.baidu.com
+## chrome的版本号
+#chrome_version: 85.0.4183.83
+## 配置文件夹路径
+#config_dir: ../Test/test/config
+## chrome下载链接
+#chrome_download_url: www.baidu.com
 # appium配置
-appium:
-  platformName: 'Android'
-  platformVersion: '5.1.1'
-  deviceName: '127.0.0.1:62001'
-  appPackage: 'com.netease.cloudmusic'
-  appActivity: 'com.netease.cloudmusic.activity.LoadingActivity'
-#  noReset: True
-  autoGrantPermissions: True
-  dontStopAppOnReset: True
-device_ip: 127.0.0.1:62001
+#appium:
+#  platformName: 'Android'
+#  platformVersion: '5.1.1'
+#  deviceName: '127.0.0.1:62001'
+#  appPackage: 'com.netease.cloudmusic'
+#  appActivity: 'com.netease.cloudmusic.activity.LoadingActivity'
+##  noReset: True
+#  autoGrantPermissions: True
+#  dontStopAppOnReset: True
+#device_ip: 127.0.0.1:62001
+
+log:
+  version: 1
+  formatters:
+    simple:
+      format: '%(levelname)s %(asctime)s %(message)s'
+      datafmt: '%Y/%m/%d %I:%M:%S '
+  handlers:
+#    console:
+#      class: logging.StreamHandler
+#      level: DEBUG
+#      formatter: simple
+#      stream: ext://sys.stdout
+#    console_err:
+#      class: logging.StreamHandler
+#      level: ERROR
+#      formatter: simple
+#      stream: ext://sys.stderr
+    default:
+      level: INFO
+      class: logging.handlers.TimedRotatingFileHandler
+      formatter: simple
+      filename: config/abc.log
+#      maxBytes: 1024
+#      backupCount: 0
+      encoding: utf-8
+  loggers:
+    simpleExample:
+      level: DEBUG
+      handlers: [default]
+#      propagate: yes
+  root:
+    level: INFO
+    handlers: [default]
+
+
+
+
+
+
+
+# appium 配置
 appium_config:
   platformName: 'Android'
   platformVersion: '6.0.1'
@@ -35,8 +77,9 @@ appium_config:
   autoGrantPermissions: True
   dontStopAppOnReset: True
   automationName: UiAutomator1
-device_ip2: 127.0.0.1:6555
-report: "report.html"
+
+# 用例开始
+# 前置用例
 before_case:
   name: logout
   actions:
@@ -50,6 +93,7 @@ before_case:
       element: username
       operation: send_keys
       value: chen
+# 前置用例2
 before_case2:
   name: collect
   actions:
@@ -67,7 +111,7 @@ before_case2:
         - input 18580269254
         - up
 
-
+# 用例1 - 登录
 case1:
   name: login
   actions:
@@ -85,6 +129,7 @@ case1:
       locate: id
       element: com.netease.cloudmusic:id/login
       operation: click
+# 用例2 - 播放音乐
 case2:
   name: palyMusic
   refer: case1
