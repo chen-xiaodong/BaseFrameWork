@@ -1,0 +1,31 @@
+# appium 配置
+appium_config:
+  platformName: 'Android'
+  platformVersion: '6.0.1'
+  deviceName: '127.0.0.1:6555'
+  appPackage: 'com.wasu.zn.edu.smartcampus.tv'
+  appActivity: 'com.wasu.zn.edu.smartcampus.tv.home.HomeActivity'
+  noReset: True
+  autoGrantPermissions: True
+#  dontStopAppOnReset: True
+  automationName: UiAutomator1
+
+
+# 检查当前打卡状态
+case1:
+  actions:
+    action1:
+      operation:
+        - right
+        - right
+        - right
+        - down
+        - down
+        - down
+        - right
+        - right
+  validate:
+    text:
+      locate: id
+      element: tv_to_punch_card
+      except: 未打卡

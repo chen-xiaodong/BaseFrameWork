@@ -1,0 +1,36 @@
+INFO 2020/10/21 09:49:41  load  参数: (<tools.tools.Yaml object at 0x7fa7da22edf0>,)
+INFO 2020/10/21 09:49:41  result:  None
+INFO 2020/10/21 09:49:41  get_config_by_path  参数: (<tools.tools.Yaml object at 0x7fa7da22edf0>, 'appium_config.deviceName')
+INFO 2020/10/21 09:49:41  result:  127.0.0.1:6555
+INFO 2020/10/21 09:49:41  get_config_by_path  参数: (<tools.tools.Yaml object at 0x7fa7da22edf0>, 'appium_config')
+INFO 2020/10/21 09:49:41  result:  {'platformName': 'Android', 'platformVersion': '6.0.1', 'deviceName': '127.0.0.1:6555', 'appPackage': 'com.netease.cloudmusic', 'appActivity': 'com.netease.cloudmusic.activity.LoadingActivity', 'autoGrantPermissions': True, 'dontStopAppOnReset': True, 'automationName': 'UiAutomator1'}
+INFO 2020/10/21 09:49:41  Adb  参数: ('127.0.0.1:6555',)
+INFO 2020/10/21 09:49:41  result:  <tools.tools.Adb object at 0x7fa7db46bd60>
+INFO 2020/10/21 09:49:41  connect  参数: (<tools.tools.Adb object at 0x7fa7db46bd60>,)
+INFO 2020/10/21 09:49:41  重试第1次
+ERROR 2020/10/21 09:49:42  设备连接失败！ Error Message: failed to connect to '127.0.0.1:6555': Connection refused
+
+INFO 2020/10/21 09:49:42  设备连接成功！
+INFO 2020/10/21 09:49:43  重试第2次
+ERROR 2020/10/21 09:49:43  设备连接失败！ Error Message: failed to connect to '127.0.0.1:6555': Connection refused
+
+INFO 2020/10/21 09:49:43  设备连接成功！
+INFO 2020/10/21 09:49:44  重试第3次
+ERROR 2020/10/21 09:49:44  设备连接失败！ Error Message: failed to connect to '127.0.0.1:6555': Connection refused
+
+INFO 2020/10/21 09:49:44  设备连接成功！
+INFO 2020/10/21 09:49:45  result:  None
+INFO 2020/10/21 09:49:45  Appium  固定位置参数: {'desc': {'platformName': 'Android', 'platformVersion': '6.0.1', 'deviceName': '127.0.0.1:6555', 'appPackage': 'com.netease.cloudmusic', 'appActivity': 'com.netease.cloudmusic.activity.LoadingActivity', 'autoGrantPermissions': True, 'dontStopAppOnReset': True, 'automationName': 'UiAutomator1'}}
+INFO 2020/10/21 09:49:45  result:  <tools.tools.Appium object at 0x7fa7dcd73340>
+DEBUG 2020/10/21 09:49:45  Starting new HTTP connection (1): 127.0.0.1
+DEBUG 2020/10/21 09:49:45  http://127.0.0.1:4723 "HEAD /wd/hub/status HTTP/1.1" 200 0
+DEBUG 2020/10/21 09:49:45  Starting new HTTP connection (1): 127.0.0.1
+DEBUG 2020/10/21 09:49:45  http://127.0.0.1:4723 "HEAD /wd/hub/status HTTP/1.1" 200 0
+DEBUG 2020/10/21 09:49:45  POST http://127.0.0.1:4723/wd/hub/session {"capabilities": {"firstMatch": [{"platformName": "Android", "appium:platformVersion": "6.0.1", "appium:deviceName": "127.0.0.1:6555", "appium:appPackage": "com.netease.cloudmusic", "appium:appActivity": "com.netease.cloudmusic.activity.LoadingActivity", "appium:autoGrantPermissions": true, "appium:dontStopAppOnReset": true, "appium:automationName": "UiAutomator1"}]}, "desiredCapabilities": {"platformName": "Android", "platformVersion": "6.0.1", "deviceName": "127.0.0.1:6555", "appPackage": "com.netease.cloudmusic", "appActivity": "com.netease.cloudmusic.activity.LoadingActivity", "autoGrantPermissions": true, "dontStopAppOnReset": true, "automationName": "UiAutomator1"}}
+DEBUG 2020/10/21 09:49:45  Starting new HTTP connection (1): 127.0.0.1
+DEBUG 2020/10/21 09:50:18  http://127.0.0.1:4723 "POST /wd/hub/session HTTP/1.1" 500 581
+DEBUG 2020/10/21 09:50:18  Finished Request
+ERROR 2020/10/21 09:50:18  driver启动失败，请重试
+INFO 2020/10/21 09:50:18  CaseLoader  参数: (<tools.tools.Yaml object at 0x7fa7da22edf0>, ['case2'])  固定位置参数: {'driver': None}
+INFO 2020/10/21 09:50:18  result:  <tools.tools.CaseLoader object at 0x7fa7dcd73640>
+ERROR 2020/10/21 09:50:18  无法获取driver，请先启动driver。driver status: None

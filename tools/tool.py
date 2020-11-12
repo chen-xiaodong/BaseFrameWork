@@ -1,24 +1,32 @@
 """
 
-@FileName: tools.py
+@FileName: tool.py
 @Author: chenxiaodong
 @CreatTime: 2020/9/21 11:01
 @Descriptions: 
 
 """
+import hashlib
+import json
+import os
 import smtplib
 import subprocess
 import sys
 import types
+import uuid
 import zipfile
+from datetime import datetime
 from email.header import Header
+from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formataddr
 from functools import wraps
 from json.decoder import JSONDecodeError
 from queue import Queue
-from time import sleep
+from time import sleep, time
+
+import pandas
 import pymysql
 import requests
 import xlrd
@@ -38,10 +46,7 @@ from selenium.common.exceptions import NoSuchElementException, WebDriverExceptio
 from selenium.webdriver.remote.webdriver import WebDriver as SeleniumWebDriver
 from selenium.webdriver.remote.webelement import WebElement
 
-_LOGLEVEL: int
-_LOG_PATH: str
-_LoggerConfig: Dict
-logger: logging.Logger
+CURRENT_PATH = str(os.path.split(os.path.realpath(__file__))[0])
 
 
 def retry(retry_time: int = 3):
@@ -54,17 +59,22 @@ def retry(retry_time: int = 3):
     :Returns:
     """
 
-    def adb_wrapper(func):
+    def wrapper(func):
         @wraps(func)
-        def wrapper(*args, **kwargs):
-            for time in range(retry_time):
-                logger.info("重试第" + str(time + 1) + "次")
-                func(*args, **kwargs)
-                sleep(1)
+        def inner(*args, **kwargs):
+            times = retry_time
+            while times > 0:
+                try:
+                    return func(*args, **kwargs)
+                except TypeError as e:
+                    print(e)
+                    times -= 1
+                    sleep(2)
+            # return func(*args, **kwargs)
 
-        return wrapper
+        return inner
 
-    return adb_wrapper
+    return wrapper
 
 
 def device_check(func):
@@ -89,69 +99,67 @@ def device_check(func):
     return wrapper
 
 
-def set_log(level: int = 10, path: str = "test.log", logger_config: Dict = None):
-    """
-    设置log日志文件的存储路径
-    设置log记录级别
+#
+# def set_log(level: int = 10, path: str = "test.log"):
+#     """
+#     设置log日志文件的存储路径
+#     设置log记录级别
+#
+#     CRITICAL = 50
+#     FATAL = CRITICAL
+#     ERROR = 40
+#     WARNING = 30
+#     WARN = WARNING
+#     INFO = 20
+#     DEBUG = 10
+#     NOTSET = 0
+#     """
+#     global _LOG_PATH, _LOGLEVEL
+#     _LOG_PATH = path
+#     _LOGLEVEL = level
+# global var
+# var.__setitem__("")
 
-    CRITICAL = 50
-    FATAL = CRITICAL
-    ERROR = 40
-    WARNING = 30
-    WARN = WARNING
-    INFO = 20
-    DEBUG = 10
-    NOTSET = 0
-    """
-    global _LOG_PATH, _LOGLEVEL, _LoggerConfig
-    _LOG_PATH = path
-    _LOGLEVEL = level
-    _LoggerConfig = logger_config
 
-
-def log():
-    """
-    log装饰器
-
-    用于装饰所需要进行log处理的方法
-
-    :Params
-    :Returns
-    """
-
-    def func_wrapper(func):
-        @wraps(func)
-        def inner(*args, **kwargs):
-            # logging.basicConfig(filename=_LOG_PATH, level=_LOGLEVEL, filemode="w",
-            #                     format='%(levelname)s %(asctime)s %(message)s',
-            #                     datefmt='%Y/%m/%d %I:%M:%S '
-            #                     )
-            # global logger
-            # logger = logging.getLogger(__name__)
-            # # print("name")
-            # global _Logger_Config
-            args1 = "  参数: " + str(args) if args else ""
-            args2 = "  固定位置参数: " + str(kwargs) if kwargs else ""
-            logging.config.dictConfig(_LoggerConfig)
-            global logger
-            logger = logging.getLogger(__name__)
-            logger.info(func.__name__ + args1 + args2)
-            result = func(*args, **kwargs)
-            logger.info("result:  " + str(result))
-            return result
-
-        return inner
-
-    return func_wrapper
+# def log():
+#     """
+#     log装饰器
+#
+#     用于装饰所需要进行log处理的方法
+#
+#     :Params
+#     :Returns
+#     """
+#
+#     def func_wrapper(func):
+#         @wraps(func)
+#         def inner(*args, **kwargs):
+#             logging.basicConfig(filename=_LOG_PATH, level=_LOGLEVEL, filemode="w",
+#                                 format='%(levelname)s %(asctime)s %(message)s',
+#                                 datefmt='%Y/%m/%d %I:%M:%S '
+#                                 )
+#             # global logger
+#             # logger = logging.getLogger(__name__)
+#             # args1 = "  参数: " + str(args) if args else ""
+#             # args2 = "  固定位置参数: " + str(kwargs) if kwargs else ""
+#             # logger.info(func.__name__ + args1 + args2)
+#             # try:
+#             #     result = func(*args, **kwargs)
+#             #     logger.info("result:  " + str(result))
+#             #     return result
+#             # except NoSuchElementException as e1:
+#             #     pass
+#
+#         return inner
+#
+#     return func_wrapper
 
 
 def singleton(cls):
     """
     单例模式装饰器
 
-
     :param cls:
-    :returns: Any
     """
     _instance = {}
 
@@ -162,6 +170,56 @@ def singleton(cls):
         return _instance[str(cls) + key]
 
     return inner
+
+
+class Log:
+    def __init__(self):
+        self._level = "DEBUG"
+        self._format = '%(levelname)s %(asctime)s %(message)s'
+        # self._handler = None
+        self._file = "result.log"
+        self.retry_time = 3
+
+    def __call__(self, func):
+        logging.basicConfig(
+            filename=self._file,
+            level=self._level,
+            filemode="w",
+            format=self._format,
+            datefmt='%Y/%m/%d %I:%M:%S '
+        )
+        logger = logging.getLogger(__name__)
+
+        @wraps(func)
+        def log_wrapper(*args, **kwargs):
+
+            args1 = str(args)
+            args2 = str(kwargs)
+            try:
+                result = func(*args, **kwargs)
+                logger.info("func args:" + args1 + "\t" + args2)
+                logger.info("func: " + func.__name__ + "。 result:  " + str(result))
+                return result
+            except NoSuchElementException as e1:
+                logging.error("没有找到元素异常。执行方法 %s,参数：%s %s", func.__name__, args1, args2)
+                # retry_func(self.retry_time, func, *args, **kwargs)
+                # self.retry_time = self.retry_time - 1
+            except FileNotFoundError as e2:
+                logging.error("文件未找到。执行方法 %s,参数：%s %s", func.__name__, args1, args2, exc_info=True)
+            except AttributeError as e3:
+                logging.error("文件未找到。执行方法 %s,参数：%s %s", func.__name__, args1, args2, exc_info=True)
+                # return retry_func(self.retry_time, func, *args, **kwargs)
+            except ZeroDivisionError as e3:
+                logging.error("文件未找到。执行方法 %s,参数：%s %s", func.__name__, args1, args2, exc_info=True)
+                # return retry_func(self.retry_time, func, *args, **kwargs)
+
+        return log_wrapper
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+        else:
+            return types.MethodType(self, instance)
 
 
 class Adb:
@@ -179,7 +237,7 @@ class Adb:
 
     """
 
-    # @log()
+    @Log()
     def __init__(self, device: str = ""):
         self._device = device
 
@@ -197,15 +255,15 @@ class Adb:
         """
         self.run("adb shell " + args)
 
-    @log()
-    @retry()
+    @Log()
     def connect(self):
         """adb连接设备
         连接失败默认重试连接三次，连接失败后结束运行
         """
         result = self.run("adb connect " + self._device)
-        if "failed" in result:
-            logger.error("设备连接失败！ Error Message: " + str(result))
+        # if "failed" in result:
+        #     logger.error("设备连接失败！ Error Message: " + str(result))
+        # logger.info("设备连接成功！")
 
     def devices(self):
         """
@@ -261,42 +319,42 @@ class Adb:
         self.run("adb  shell am start -n " + activity)
 
     @device_check
-    @log()
+    @Log()
     def up(self):
         """adb模拟键盘上键"""
         self.run("adb shell input keyevent 19")
 
-    @log()
+    @Log()
     @device_check
     def down(self):
         """adb模拟键盘下键"""
         self.run("adb shell input keyevent 20")
 
-    @log()
+    @Log()
     @device_check
     def right(self):
         """adb模拟键盘右键"""
         self.run("adb shell input keyevent 22")
 
-    @log()
+    @Log()
     @device_check
     def left(self):
         """adb模拟键盘左键"""
         self.run("adb shell input keyevent 21")
 
-    @log()
+    @Log()
     @device_check
     def ok(self):
         """adb模拟确定键"""
         self.run("adb shell input keyevent 66")
 
-    @log()
+    @Log()
     @device_check
     def back(self):
         """adb模拟手机返回键"""
         self.run("adb shell input keyevent 4")
 
-    @log()
+    @Log()
     @device_check
     def input_nums(self, nums: str):
         """
@@ -477,6 +535,22 @@ class Files:
         else:
             Path(filepath).mkdir()
 
+    @staticmethod
+    def zip_dir(dirname, zipfilename):
+        filelist = []
+        if os.path.isfile(dirname):
+            filelist.append(dirname)
+        else:
+            for root, dirs, files in os.walk(dirname):
+                for name in files:
+                    filelist.append(os.path.join(root, name))
+
+        zf = zipfile.ZipFile(zipfilename, "w", zipfile.zlib.DEFLATED)
+        for tar in filelist:
+            arcname = tar[len(dirname):]
+            zf.write(tar, arcname)
+        zf.close()
+
 
 class SqlClass:
     """
@@ -528,45 +602,190 @@ class Yaml:
 
     """
 
-    def __init__(self, path: str = "", file: Dict = None) -> None:
+    def __init__(self, path, file=Any):
         self.path = path
         self.file = file
 
+    @Log()
     def load(self):
         """
         用于加载yaml文件，获取yaml文件中的值时需要先调用此方法，只需调用一次。
         路径错误则结束运行，并记录在日志
-
-        :raise FileNotFoundError
-
         """
-        try:
-            with open(self.path, "rb") as f:
-                self.file = yaml.safe_load(f)
-        except FileNotFoundError as e:
-            logger.error("文件路径错误，请检查! Error Message：" + str(e))
-
-    def get_config_by_path(self, config_path="") -> Any:
-        """
-        通过传入配置项的路径获取该项值
-
-        路径为str类型，如： config.app.version
+        with open(self.path, "rb") as f:
+            self.file = yaml.safe_load(f)
+        return self.file
 
 
-        :param config_path: 配置项路径
-        :return: Any
-        """
+@Log()
+def get_value_by_path(dict_obj: Dict, config_path=""):
+    """
+    通过传入配置项的路径获取该项值
 
-        try:
-            dic = benedict(self.file)
-            return dic[config_path]
-        except TypeError as e:
-            logger.error("文件不存在或无法找到对应的键值！Error Message：" + str(e) +
-                         "\n  参数值：" + config_path)
+    路径为str类型，如： config.app.version
+
+
+    :param dict_obj: 字典对象
+    :param config_path: 配置项路径
+    :return: Any
+    """
+
+    dic = benedict(dict_obj)
+    return dic[config_path]
+
+
+def md5(*args):
+    m = hashlib.md5()
+    for arg in args:
+        part = arg.encode('utf-8')
+        m.update(part)
+    return m.hexdigest()
+
+
+CASE_REPORT = {}
+
+
+class Report:
+
+    def __init__(self):
+        self.level = 0
+
+    def __call__(self, func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            driver = None
+            for arg in args:
+                if isinstance(arg, CaseLoader):
+                    driver = arg.driver
+            if func.__name__ == "dell_case":
+                start_time = int(round(time() * 1000))
+                uuid_id = uuid.uuid4()
+                self.set_value(CASE_REPORT, "uuid", str(uuid_id))
+                for arg in args:
+                    if isinstance(arg, dict):
+                        self.set_value(CASE_REPORT, "name", arg.get("name"))
+                        self.set_value(CASE_REPORT, "testCaseId", md5(arg.get("name")))
+                        self.set_value(CASE_REPORT, "steps", [])
+                self.set_value(CASE_REPORT, "start", start_time)
+            self.set_status("passed")
+            temp = dict()
+            try:
+                start_time = int(round(time() * 1000))
+                if func.__name__ == "dell_single_step":
+                    name = kwargs.get("name")
+                    self.set_value(temp, "attachments", [])
+                    self.set_value(temp, "name", name)
+                    self.set_value(temp, "start", start_time)
+                    self.set_value(temp, "status", "passed")
+                result = func(*args, **kwargs)
+                stop_time = int(round(time() * 1000))
+                if func.__name__ == "dell_single_step":
+                    png_name = uuid.uuid4()
+                    png_file = str(png_name) + "-attachment.png"
+                    os.mkdir("temps")
+                    driver.get_screenshot_as_file("temps/" + png_file)
+                    temp_attach = self.set_attachments(png_file)
+                    temp.get("attachments").append(temp_attach)
+                    self.set_value(temp, "stop", stop_time)
+                    steps_list: list = CASE_REPORT.get("steps")
+                    steps_list.append(temp)
+                if func.__name__ == "dell_validate" or func.__name__ == "dell_self_validate":
+                    self.set_value(CASE_REPORT, "stop", stop_time)
+                return result
+            except AssertionError as e:
+                self.set_status("failed")
+                self.set_value(temp, "status", "failed")
+            finally:
+                pass
+
+        return wrapper
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+        else:
+            return types.MethodType(self, instance)
+
+    @staticmethod
+    def set_name(dic: dict, name: str):
+        dic["name"] = name
+
+    @staticmethod
+    def set_status(status):
+        CASE_REPORT["status"] = status
+
+    def set_fullname(self):
+        pass
+
+    def set_labels(self):
+        pass
+
+    @staticmethod
+    def set_times(start=0, stop=0, flag=""):
+        if flag == "start":
+            CASE_REPORT["start"] = start
+        if flag == "stop":
+            CASE_REPORT["stop"] = stop
+
+    @staticmethod
+    def set_attachments(file):
+        temp = dict()
+        temp["type"] = "image/png"
+        temp["source"] = file
+        return temp
+
+    @staticmethod
+    def set_steps(steps):
+        step_list: list = CASE_REPORT.get("steps")
+        if step_list:
+            step_list.append(steps)
+        else:
+            CASE_REPORT["steps"] = []
+
+    @staticmethod
+    def set_value(dic, key, value):
+        if isinstance(dic, dict):
+            dic[key] = value
+            if dic.get(key):
+                pass
+            else:
+                dic[key] = value
+
+
+class Pages:
+
+    def __init__(self, driver: webdriver, file: Any):
+        self.file = file
+        self.driver = driver
+
+    def get_value(self, page_name: str) -> Union[Dict, WebElement]:
+        page = get_value_by_path(self.file, page_name)
+        element_pages = {}
+        if isinstance(page, dict):
+            for key, value in page.items():
+                element_pages[key] = self.get_element(value)
+                print(element_pages)
+            return element_pages
+        elif isinstance(page, str):
+            return self.get_element(page)
+
+    def get_element(self, value: str) -> Optional[WebElement]:
+        if isinstance(value, str):
+            method = value.split(" ")[0]
+            element = value.split(" ")[1]
+            if method == "id":
+                return self.driver.find_element_by_id(element)
+            elif method == "name":
+                return self.driver.find_element_by_name(element)
+            elif method == "xpath":
+                return self.driver.find_element_by_xpath(element)
+            elif method == "class":
+                return self.driver.find_element_by_class_name(element)
+        else:
+            return None
 
 
 @singleton
-@log()
 class Appium:
     """
     Appium类，集成了appium的操作
@@ -586,23 +805,28 @@ class Appium:
         self.driver = None
         self.service = None
 
+    @Log()
     def start_server(self):
         """启动appium server"""
         self.service = AppiumService()
-        if self.service.is_listening:
-            logger.info("appium server is started")
-        else:
-            self.service.start()
+        self.service.start()
+        # if self.service.is_listening:
+        #     logger.info("appium server is started")
+        # else:
+        #     self.service.start()
 
+    @Log()
     def start_driver(self):
         """启动appium driver"""
         if self.service.is_listening:
-            try:
-                self.driver = app_webdriver.Remote(self.url, self.desc)
-                return self.driver
-            except WebDriverException as e:
-                logger.error("driver启动失败，请重试")
-                return None
+            self.driver = app_webdriver.Remote(self.url, self.desc)
+            return self.driver
+            # try:
+            #     self.driver = app_webdriver.Remote(self.url, self.desc)
+            #     return self.driver
+            # except WebDriverException as e:
+            #     logger.error("driver启动失败，请重试")
+            #     return None
         else:
             self.start_server()
 
@@ -657,27 +881,30 @@ class Selenium(object):
         return self._driver
 
 
+@Log()
 def dell_keyevent(operations):
     """处理adb 键值响应"""
     adb = Adb()
-    opts = {
-        "up": adb.up(),
-        "down": adb.down(),
-        "ok": adb.ok(),
-        "left": adb.left(),
-        "right": adb.right(),
-    }
+    # opts = {
+    #     "up": adb.up(),
+    #     "down": adb.down(),
+    #     "ok": adb.ok(),
+    #     "left": adb.left(),
+    #     "right": adb.right(),
+    # }
+    sleep(2)
+    # print(operations)
     for operation in operations:
         operation: str
         if "input" in operation:
             value = operation.split(' ')[1]
             adb.input_nums(value)
         else:
-            opts.get(operation)
+            # opts.get(operation)
+            getattr(adb, operation)()
         sleep(1)
 
 
-@log()
 class CaseLoader:
     """
     CaseLoader类，用例加载类
@@ -685,7 +912,7 @@ class CaseLoader:
     :param file: yaml文件
     :param case_list:执行用例列表
     :param name:配置文件"name"的名称
-    :param actions:配置文件"acitons"的名称
+    :param steps:配置文件"acitons"的名称
     :param refer:配置文件"refer"的名称
     :param operation:配置文件"operation"的名称
     :param locate:配置文件"locate"的名称
@@ -695,12 +922,15 @@ class CaseLoader:
     :param driver:appium driver对象
     """
 
-    def __init__(self, file: Yaml = None,
+    @Log()
+    def __init__(self, file,
                  case_list: list = None,
-                 name: str = "name", actions: str = "actions",
+                 name: str = "name", steps: str = "steps",
                  refer: str = "refer", operation: str = "operation",
                  locate: str = "locate", element: str = "element", value: str = "value",
-                 validate: str = "",
+                 validate: str = "validate",
+                 data: str = "data",
+                 tag: str = "tag",
                  driver: Union[Type[SeleniumWebDriver], Type[AppWebDriver]] = None
                  ):
 
@@ -708,124 +938,130 @@ class CaseLoader:
         self.file = file
         self.case_list = case_list
         self.value = value
-        self.actions = actions
+        self.steps = steps
         self.name = name
-        self.actions = actions
+        self.steps = steps
         self.refer = refer
         self.operation = operation
         self.locate = locate
         self.element = element
         self.driver = driver
+        self.data = data
+        self.tag = tag
 
     def start(self) -> None:
 
         pass
 
+    @Log()
     def get_case(self, case_name) -> Dict:
         """
         获取用例，返回dict
 
         :param case_name:用例名称
         """
-        if self.file.get_config_by_path(case_name):
-            return self.file.get_config_by_path(case_name)
+        if get_value_by_path(self.file, case_name):
+            return get_value_by_path(self.file, case_name)
 
+    @Log()
     def get_refer(self, case_name) -> str:
         """
         获取refer
 
         :param case_name:
         """
-        if self.file.get_config_by_path(case_name + ".refer"):
-            return self.file.get_config_by_path(case_name + ".refer")
+        if get_value_by_path(self.file, case_name + ".refer"):
+            return get_value_by_path(self.file, case_name + ".refer")
 
+    @Log()
     def check_refer(self, case: Dict = None) -> bool:
         """校验是否存在refer"""
         return True if case.get(self.refer) else False
 
+    @Log()
     def get_element(self, method: str = "", element: str = "") -> Any:
         """获取element"""
-        try:
-            if method == "id":
-                # print(element)
-                return self.driver.find_element_by_id(element)
-            elif method == "name":
-                return self.driver.find_element_by_name(element)
-            elif method == "xpath":
-                return self.driver.find_element_by_xpath(element)
-            elif method == "class":
-                return self.driver.find_element_by_class_name(element)
-        except NoSuchElementException as e:
-            print("没有找到这个元素，请检查元素定位信息")
+        if method == "id":
+            return self.driver.find_element_by_id(element)
+        elif method == "name":
+            return self.driver.find_element_by_name(element)
+        elif method == "xpath":
+            return self.driver.find_element_by_xpath(element)
+        elif method == "class":
+            return self.driver.find_element_by_class_name(element)
 
     @staticmethod
+    @Log()
+    @Report()
     def opt(element: WebElement, operation: str = "", value: str = "") -> None:
         """对element进行操作"""
-        try:
-            if operation == "click":
-                element.click()
-            elif operation == "send_keys":
-                element.send_keys(value)
-            elif operation == "text":
-                return element.text
+        if operation == "click":
+            element.click()
+        elif operation == "send_keys":
+            element.send_keys(value)
+        elif operation == "text":
+            return element.text
 
-        except AttributeError as e:
-            logger.debug("元素属性错误，请检查后再试! Error Message:" + str(e))
-        except NoSuchElementException as e:
-            logger.error("无法找到该元素，请重试！ Error Message:" + str(e))
+    @Log()
+    @Report()
+    def dell_single_step(self, name, locate, element, operation, value, validate):
+        if locate is None and element is None:
+            dell_keyevent(operation)
+        else:
+            self.opt(element, operation, value)
+        self.dell_validate(validate)
 
-    def dell_action(self, actions: Dict = None):
-        """处理action"""
-        for case, actions in actions.items():
-            print(actions)
-            locate = actions.get(self.locate)
-            element = actions.get(self.element)
-            operation = actions.get(self.operation)
-            value = actions.get(self.value)
-            validate = actions.get(self.validate)
+    @Log()
+    @Report()
+    def dell_step(self, steps: Dict = None):
+        """处理step"""
+        for case, steps in steps.items():
+            name = steps.get(self.name)
+            locate = steps.get(self.locate)
+            element = steps.get(self.element)
+            operation = steps.get(self.operation)
+            value = steps.get(self.value)
+            validate = steps.get(self.validate)
             element = self.get_element(locate, element)
-            if locate is None and element is None:
-                dell_keyevent(operation)
-            else:
-                self.opt(element, operation, value)
-            self.dell_validate(validate)
+            self.dell_single_step(name=name, locate=locate, element=element, operation=operation, value=value,
+                                  validate=validate)
 
-    def dell_refer(self, refer) -> Any:
+    @Report()
+    def dell_refer(self, refer):
         """处理refer"""
         case = self.get_case(refer)
         self.dell_case(case)
 
+    @Log()
+    @Report()
     def dell_case(self, case):
         """处理case"""
         refer = case.get(self.refer)
-        actions = case.get(self.actions)
+        steps = case.get(self.steps)
         validate = case.get(self.validate)
         name = case.get(self.name)
+        data = case.get(self.data)
+        tag = case.get(self.tag)
 
         if refer is None:
             pass
         else:
             self.dell_refer(refer)
-        self.dell_action(actions)
+        self.dell_step(steps)
+
         if validate is None:
             pass
         else:
             self.dell_validate(validate)
 
-    def load(self, time: int = 3) -> None:
+    @Log()
+    def load(self, time_to_wait: int = 3) -> None:
         """加载用例"""
         # 判断是否开启driver
-        print(self.driver)
         if self.driver is None:
-            logger.error("无法获取driver，请先启动driver")
-            sys.exc_info()
             sys.exit(0)
-            # raise BaseException("无法获取driver，请先启动driver")
-        # 设置全局等待时间，默认3s
-        self.driver.implicitly_wait(time_to_wait=time)
-        # 新建队列
+        self.driver.implicitly_wait(time_to_wait=time_to_wait)
         queue = MyQueue()
-        # 将case名放入队列
         for item in self.case_list:
             case = self.get_case(item)
             queue.put(case)
@@ -835,33 +1071,48 @@ class CaseLoader:
             case = queue.get()
             self.dell_case(case)
 
+    @Log()
+    @Report()
+    @staticmethod
+    def dell_self_validate(actually, excepts):
+        assert actually == excepts
+
+    @Log()
+    @Report()
     def dell_validate(self, validates):
         """处理校验"""
         if validates:
             url = validates.get("url")
             activity = validates.get("activity")
             texts = validates.get("text")
-            try:
-                if url:
-                    current_url = self.driver.current_url
-                    except_url = url.get("except")
-                    assert current_url == except_url
-                if activity:
-                    current_activity = self.driver.current_activity
-                    except_activity = activity.get("except")
-                    assert current_activity == except_activity
-                if texts:
-                    locate: str = texts.get(self.locate)
-                    element: str = texts.get(self.element)
-                    except_text: str = texts.get("except")
-                    elements: WebElement = self.get_element(locate, element)
-                    assert elements.text == except_text
-            except AssertionError as error:
-                logger.error("断言失败" + str(error))
-            except AttributeError as error2:
-                logger.error("无法获取到键值" + str(error2))
+            if url:
+                current_url = self.driver.current_url
+                except_url = url.get("except")
+                assert current_url == except_url
+            if activity:
+                current_activity = self.driver.current_activity
+                except_activity = activity.get("except")
+                assert current_activity == except_activity
+            if texts:
+                locate: str = texts.get(self.locate)
+                element: str = texts.get(self.element)
+                except_text: str = texts.get("except")
+                elements: WebElement = self.get_element(locate, element)
+                assert elements.text == except_text
         else:
             pass
+
+
+def load_report():
+    file_name = uuid.uuid4()
+    json_file = json.dumps(CASE_REPORT, indent=4, ensure_ascii=False)
+
+    with open("temps/" + str(file_name) + "-result.json", "w+") as f:
+        f.write(json_file)
+
+
+def load_attachment():
+    pass
 
 
 class Request:
@@ -910,13 +1161,13 @@ class Mail:
         self.message = None
         self.server = None
 
-    def send(self, header_msg: str = "", to_msg: str = "",
+    def send(self, main_msg: str = "", header_msg: str = "", to_msg: str = "",
              subject: str = "", server_address: str = "", port: int = 465, files: list = None):
-        # self.message = MIMEMultipart()
+        self.message = MIMEMultipart()
 
-        self.message = MIMEText('这是菜鸟教程Python 邮件发送测试……', 'plain', 'utf-8')
-        self.message['FROM'] = formataddr([header_msg, self.username])
-        self.message['To'] = formataddr([to_msg, self.address])
+        self.message = MIMEText(main_msg, 'plain', 'utf-8')
+        self.message['FROM'] = header_msg
+        self.message['To'] = to_msg
         self.message['subject'] = subject
         self.login(server_address, port)
         if files:
@@ -931,35 +1182,10 @@ class Mail:
 
     def set_files(self, files: list = None):
         for file in files:
-            att1 = MIMEText(open(file, 'rb').read(), 'base64', 'utf-8')
-            att1["Content-Type"] = 'application/octet-stream'
+            att1 = MIMEApplication(open(file, 'rb').read())
+            att1.add_header("Content-Disposition", 'attachment', filename=file)
             # 这里的filename可以任意写，写什么名字，邮件中显示什么名字
-            att1["Content-Disposition"] = 'attachment; '
             self.message.attach(att1)
-
-
-class Report:
-    def __init__(self, level):
-        self.level = level
-
-    def allure_report(self):
-        pass
-
-    def html_report(self):
-        pass
-
-    def __call__(self, func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            func(*args, **kwargs)
-
-        return wrapper
-
-    def __get__(self, instance, owner):
-        if instance is None:
-            return self
-        else:
-            return types.MethodType(self, instance)
 
 
 class Zentao:
