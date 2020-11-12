@@ -1,0 +1,7 @@
+# 弹窗
+pop:
+  agree: id com.netease.cloudmusic:id/agree
+# 启动页
+start:
+  checkbox: id com.netease.cloudmusic:id/agreeCheckbox
+  login: id com.netease.cloudmusic:id/login

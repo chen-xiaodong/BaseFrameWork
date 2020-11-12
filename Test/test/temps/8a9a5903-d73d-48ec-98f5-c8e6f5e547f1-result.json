@@ -1,0 +1,22 @@
+{
+    "uuid": "c054057c-f5a9-41e8-a594-ff463c6f7cf6",
+    "name": "login",
+    "testCaseId": "d56b699830e77ba53855679cb1d252da",
+    "steps": [
+        {
+            "attachments": [
+                {
+                    "type": "image/png",
+                    "source": "3ee4cf2b-ae75-45b1-a3b5-0880e250b6ed-attachment.png"
+                }
+            ],
+            "name": "点击同意",
+            "start": 1604987026244,
+            "status": "passed",
+            "stop": 1604987026244
+        }
+    ],
+    "start": 1604987015885,
+    "status": "failed",
+    "stop": 1604987077338
+}

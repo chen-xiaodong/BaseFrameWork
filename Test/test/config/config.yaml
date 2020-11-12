@@ -1,94 +1,196 @@
-
-# 注释说明
-download_config:
-  base_url: https://chromedriver.storage.googleapis.com/
-  platforms:
-    linux: /chromedriver_linux64.zip
-    macos: /chromedriver_mac64.zip
-    windows: /chromedriver_win32.zip
-# selenium打开的页面
-selenium_url: http://www.baidu.com
-# chrome的版本号
-chrome_version: 85.0.4183.83
-# 配置文件夹路径
-config_dir: ../Test/test/config
-# chrome下载链接
-chrome_download_url: www.baidu.com
+#
+## 注释说明
+#download_config:
+#  base_url: https://chromedriver.storage.googleapis.com/
+#  platforms:
+#    linux: /chromedriver_linux64.zip
+#    macos: /chromedriver_mac64.zip
+#    windows: /chromedriver_win32.zip
+## selenium打开的页面
+#selenium_url: http://www.baidu.com
+## chrome的版本号
+#chrome_version: 85.0.4183.83
+## 配置文件夹路径
+#config_dir: ../Test/test/config
+## chrome下载链接
+#chrome_download_url: www.baidu.com
 # appium配置
-appium:
-  platformName: 'Android'
-  platformVersion: '5.1.1'
-  deviceName: '127.0.0.1:62001'
-  appPackage: 'com.netease.cloudmusic'
-  appActivity: 'com.netease.cloudmusic.activity.LoadingActivity'
-#  noReset: True
-  autoGrantPermissions: True
-  dontStopAppOnReset: True
-device_ip: 127.0.0.1:62001
+#appium:
+#  platformName: 'Android'
+#  platformVersion: '5.1.1'
+#  deviceName: '127.0.0.1:62001'
+#  appPackage: 'com.netease.cloudmusic'
+#  appActivity: 'com.netease.cloudmusic.activity.LoadingActivity'
+##  noReset: True
+#  autoGrantPermissions: True
+#  dontStopAppOnReset: True
+#device_ip: 127.0.0.1:62001
+
+#log:
+#  version: 1
+#  formatters:
+##    standard:
+##      format: standard_format
+##    simple1:
+##      format: simple_format
+#    simple:
+#      format: '%(levelname)s %(asctime)s %(message)s'
+#      datafmt: '%Y/%m/%d %I:%M:%S '
+#  handlers:
+#    console:
+#      class: logging.StreamHandler
+#      level: DEBUG
+#      formatter: simple
+#      stream: ext://sys.stdout
+##    console_err:
+##      class: logging.StreamHandler
+##      level: ERROR
+##      formatter: simple
+##      stream: ext://sys.stderr
+#    default:
+#      level: INFO
+#      class: logging.handlers.RotatingFileHandler
+#      formatter: simple
+#      filename: config/abc.log
+##      maxBytes: 1024
+##      backupCount: 0
+#      encoding: utf-8
+#  loggers:
+#    simpleExample:
+#      level: INFO
+#      handlers: [default,console]
+#      propagate: yes
+#  root:
+#    level: INFO
+#    handlers: [default]
+
+
+
+
+
+
+
+# appium 配置
 appium_config:
   platformName: 'Android'
   platformVersion: '6.0.1'
   deviceName: '127.0.0.1:6555'
   appPackage: 'com.netease.cloudmusic'
-  appActivity: 'com.netease.cloudmusic.activity.LoadingActivity'
-#  noReset: True
+#  appActivity: 'com.netease.cloudmusic.activity.LoadingActivity'
+  appActivity: 'com.netease.cloudmusic.activity.LoginActivity'
+  noReset: True
   autoGrantPermissions: True
-  dontStopAppOnReset: True
+#  dontStopAppOnReset: True
   automationName: UiAutomator1
-device_ip2: 127.0.0.1:6555
-report: "report.html"
+
+
+
+
+#用例说明
+case_list:
+  name: 网易云登录测试
+  list:
+    - case1
+    - case2
+
+
+# 用例开始
+# 前置用例
 before_case:
   name: logout
-  actions:
-    action1:
+  steps:
+    step1:
       locate_method: id
       element_msg: username
       operation: send_keys
       value: chen
-    action2:
+    step2:
       locate: id
       element: username
       operation: send_keys
       value: chen
+# 前置用例2
+before_case2:
+  name: collect
+  steps:
+    step1:
+      operations:
+        - up
+        - up
+        - down
+        - up
+        - ok
+        - up
+        - input 15222
+    step2:
+      operations:
+        - input 18580269254
+        - up
+
+# 用例1 - 登录
 case1:
   name: login
-  actions:
-    action1:
+  screenshot: True
+  steps:
+    step1:
+      name: 点击同意
       locate: id
-      element: com.netease.cloudmusic:id/agre
+      element: com.netease.cloudmusic:id/agree
       operation: click
       value:
-    action2:
+    step2:
+      name: 点击checkbox
       locate: id
       element: com.netease.cloudmusic:id/agreeCheckbox
       operation: click
       value: excel2
-    action3:
+    step3:
+      name: 点击登录按钮
       locate: id
       element: com.netease.cloudmusic:id/login
       operation: click
 
 
 
+
+# 用例2 - 播放音乐
 case2:
   name: palyMusic
+  tag: skip
   refer: case1
-  actions:
-    action1:
+  datas:
+    data1: excel Sheet1 phone
+    data2: excel Sheet1 password
+  steps:
+    step1:
+      name: 输入手机号
       locate: id
       element: com.netease.cloudmusic:id/cellphone
       operation: send_keys
-      value: 18758572113
-    action2:
+      value: int[11]
+      attach: 18758572113
+
+    step2:
+      name: 点击下一步
       locate: id
       element: com.netease.cloudmusic:id/next
       operation: click
       value: 00000
-    action3:
+    step3:
+      name: 输入手机号
       locate: id
       element: com.netease.cloudmusic:id/password
       operation: send_keys
       value: 123456789a
+  validate:
+    url:
+      except: http：www.baidu.com
+    activity:
+      except: com.android.MainActivity
+    others:
+      except: 3
+
+
 
 
 
