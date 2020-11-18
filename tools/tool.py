@@ -15,25 +15,19 @@ import sys
 import types
 import uuid
 import zipfile
-from datetime import datetime
-from email.header import Header
-from email.mime.application import MIMEApplication
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.utils import formataddr
-from functools import wraps
-from json.decoder import JSONDecodeError
-from queue import Queue
-from time import sleep, time
-
-import pandas
 import pymysql
 import requests
 import xlrd
 import yaml
 import logging
 import logging.config
-import allure
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from functools import wraps
+from json.decoder import JSONDecodeError
+from queue import Queue
+from time import sleep, time
 from benedict import benedict
 from pathlib import Path
 from selenium import webdriver
