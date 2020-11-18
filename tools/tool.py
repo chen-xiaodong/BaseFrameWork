@@ -15,25 +15,19 @@ import sys
 import types
 import uuid
 import zipfile
-from datetime import datetime
-from email.header import Header
-from email.mime.application import MIMEApplication
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.utils import formataddr
-from functools import wraps
-from json.decoder import JSONDecodeError
-from queue import Queue
-from time import sleep, time
-
-import pandas
 import pymysql
 import requests
 import xlrd
 import yaml
 import logging
 import logging.config
-import allure
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from functools import wraps
+from json.decoder import JSONDecodeError
+from queue import Queue
+from time import sleep, time
 from benedict import benedict
 from pathlib import Path
 from selenium import webdriver
@@ -1137,7 +1131,7 @@ class Request:
         elif self.method == "post":
             result = self.session.post(self.url, data=self.data)
         try:
-            final = result.json()
+            final = result
             return final
         except UnicodeDecodeError as error:
             pass
@@ -1189,8 +1183,59 @@ class Mail:
 
 
 class Zentao:
-    def __init__(self):
-        pass
+    def __init__(self, host_url, account, password):
+        self.url = host_url
+        self.account = account
+        self.password = password
+        self.sessionID = ""
+        self.sessionName = ""
+        self.session = requests.Session()
+
+    def get_session(self):
+        session_url = self.url + "/zentao/api-getSessionID.json"
+        r = self.session.get(session_url).json()
+        if isinstance(r, dict):
+            if r.get("status") == "success":
+                data = r.get("data")
+                if isinstance(data, dict):
+                    self.sessionID = data.get("sessionID")
+                    self.sessionName = data.get("sessionName")
+                if isinstance(data, str):
+                    data = json.loads(data)
+                    self.sessionID = data.get("sessionID")
+                    self.sessionName = data.get("sessionName")
+
+    def user_login(self, login_api: str = "/zentao/user-login.json"):
+        login_url = self.url + login_api
+        data = {
+            "account": self.account,
+            "password": self.password
+        }
+        r = self.session.post(login_url, data).json()
+        # print(r)
+        if isinstance(r, dict):
+            if r.get("status") == "success":
+                return 1
+            else:
+                print("login error")
+                return None
+
+    def create_bug(self, product_id: int = 0, module: int = 0, project_id: int = 0,
+                   bug_api: str = "/zentao/bug-create-", bug_data: dict = None
+                   ):
+        self.get_session()
+        if self.user_login():
+            create_bug_url = self.url + bug_api + str(product_id) + "-" + str(module) + "-" + str(project_id) + "?" + \
+                             self.sessionName + "=" + self.sessionID
+            print(create_bug_url)
+            r = self.session.post(create_bug_url, bug_data)
+            if r.status_code == 200:
+                print(r.content)
+                print("success")
+            else:
+                print(r)
+        else:
+            print("fail")
 
 
 class errorHandler:

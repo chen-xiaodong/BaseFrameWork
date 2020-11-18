@@ -64,10 +64,44 @@
 #    level: INFO
 #    handlers: [default]
 
-
-
-
-
+zentao_config:
+  # int   所属产品 * 必填
+  product: "20"
+   # int | trunk   影响版本 * 必填
+  openedBuild: "trunk"
+  # int    分支 / 平台
+  branch: "2"
+  # int    所属模块
+  module: 0
+  # int   所属项目
+  project: "87"
+  # string 指派给
+  assignedTo: "op042052"
+  # date 截止日期    日期格式：YY - mm - dd，如：2019 - 01 - 01
+  deadline: ""
+  # string   Bug类型   取值范围： | codeerror | interface | config | install | security | performance | standard |
+  # automation | designchange | newfeature | designdefect | trackthings | codeimprovement | others
+  type: "codeerror"
+  # string 操作系统 取值范围： | all | windows | win8 | win7 | vista | winxp | win2012 | win2008 | win2003 | win2000 |
+  # android | ios | wp8 | wp7 | symbian | linux | freebsd | osx | unix | others
+  os: "",
+  # string    浏览器 取值范围： | all | ie | ie11 | ie10 | ie9 | ie8 | ie7 | ie6 | chrome | firefox | firefox4 |
+  # firefox3 | firefox2 | opera | oprea11 | oprea10 | opera9 | safari | maxthon | uc | other
+  browser: ""
+  # string  颜色格式：  # RGB，如：#3da7f5
+  color: "",
+  # int  严重程度    取值范围：1 | 2 | 3 | 4
+  severity: "1"
+  # int   优先级 取值范围：0 | 1 | 2 | 3 | 4
+  pri: "1"
+  # string 抄送给 填写帐号，多个账号用','分隔。
+  mailto: ""
+  # string   关键词
+  keywords: ""
+  # string  Bug标题 * 必填
+  title: "cesssssssss"
+  # string   重现步骤
+  steps: "set bug link in here"
 
 
 # appium 配置
@@ -84,16 +118,12 @@ appium_config:
   automationName: UiAutomator1
 
 
-
-
 #用例说明
 case_list:
   name: 网易云登录测试
   list:
     - case1
     - case2
-
-
 # 用例开始
 # 前置用例
 before_case:
@@ -126,7 +156,6 @@ before_case2:
       operations:
         - input 18580269254
         - up
-
 # 用例1 - 登录
 case1:
   name: login
@@ -149,10 +178,6 @@ case1:
       locate: id
       element: com.netease.cloudmusic:id/login
       operation: click
-
-
-
-
 # 用例2 - 播放音乐
 case2:
   name: palyMusic
